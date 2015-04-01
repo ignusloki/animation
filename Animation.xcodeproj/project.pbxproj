@@ -14,6 +14,7 @@
 		84529A161A7078B00054D78B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 84529A151A7078B00054D78B /* Images.xcassets */; };
 		84529A191A7078B00054D78B /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 84529A171A7078B00054D78B /* LaunchScreen.xib */; };
 		84529A251A7078B10054D78B /* AnimationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84529A241A7078B10054D78B /* AnimationTests.swift */; };
+		84CD017A1A9A03CC00EA4A32 /* weathericons-regular-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 84CD01791A9A03CC00EA4A32 /* weathericons-regular-webfont.ttf */; };
 		84D0CA531A94BC1F00A446D3 /* Lato-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 84D0CA521A94BC1F00A446D3 /* Lato-Regular.ttf */; };
 /* End PBXBuildFile section */
 
@@ -39,6 +40,7 @@
 		84529A1E1A7078B10054D78B /* AnimationTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AnimationTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		84529A231A7078B10054D78B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		84529A241A7078B10054D78B /* AnimationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationTests.swift; sourceTree = "<group>"; };
+		84CD01791A9A03CC00EA4A32 /* weathericons-regular-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "weathericons-regular-webfont.ttf"; sourceTree = "<group>"; };
 		84D0CA521A94BC1F00A446D3 /* Lato-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Regular.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -95,6 +97,7 @@
 		84529A0C1A7078B00054D78B /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				84CD01791A9A03CC00EA4A32 /* weathericons-regular-webfont.ttf */,
 				84D0CA521A94BC1F00A446D3 /* Lato-Regular.ttf */,
 				84529A0D1A7078B00054D78B /* Info.plist */,
 			);
@@ -201,6 +204,7 @@
 				84529A141A7078B00054D78B /* Main.storyboard in Resources */,
 				84529A191A7078B00054D78B /* LaunchScreen.xib in Resources */,
 				84529A161A7078B00054D78B /* Images.xcassets in Resources */,
+				84CD017A1A9A03CC00EA4A32 /* weathericons-regular-webfont.ttf in Resources */,
 				84D0CA531A94BC1F00A446D3 /* Lato-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
