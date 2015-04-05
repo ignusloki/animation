@@ -26,6 +26,7 @@ class ViewController: UIViewController {
     let labelMorningTemp = UILabel();
     let labelMorningSumm = UILabel();
     let labelMorningHum = UILabel();
+    let labelMorningHumVal = UILabel();
     
     let labelDay = UILabel();
     let labelDayTemp = UILabel();
@@ -87,17 +88,35 @@ class ViewController: UIViewController {
     var iconMarginLeft: CGFloat = 0;
     var iconMarginTop: CGFloat = 0;
     
+    //var for date
+    var day: String = "";
+    
     // API key to access
     private let apiKey = "7cabaf0493ec4339be738cc061d42c0b";
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let date = NSDate();
+        let calendar = NSCalendar.currentCalendar();
+        let components = calendar.components(.CalendarUnitDay | .CalendarUnitHour, fromDate: date);
+        let hour = components.hour;
+        
+        let dateFormatter = NSDateFormatter()
+        dateFormatter.dateFormat = "dd"
+        day = dateFormatter.stringFromDate(NSDate());
+        
         //Set views and targets
         setContainersView();
-        setStartView();
+        
+        //Set labels in each view
         setLabelsViews();
-        setWeatherIcon();
+        
+        //Update info and labels
+        getCurrentWeatherData();
+        
+        //Set view according to hour
+        //setStartView(hour);
         
     }
 
@@ -111,6 +130,13 @@ class ViewController: UIViewController {
         var screenSize = UIScreen.mainScreen().bounds;
         iconMarginLeft = screenSize.size.width * 0.05;
         iconMarginTop = screenSize.size.height * 0.15;
+        
+        //NIGHT
+        
+        nightSquare.backgroundColor = UIColor(red: 100/255, green: 71/255, blue: 73/255, alpha: 1);
+        nightSquare.frame = CGRect(x: self.view.bounds.origin.x, y: self.view.bounds.origin.y + self.view.bounds.height/6*5, width: self.view.bounds.width, height: self.view.bounds.height/6);
+        nightIcon.frame = CGRect(x: nightSquare.bounds.width * 1/16, y: nightSquare.bounds.origin.y + nightSquare.bounds.height * 1/30, width: nightSquare.bounds.width * 1.5/5, height: nightSquare.bounds.height);
+        self.view.addSubview(nightSquare);
         
         //MORNING
         
@@ -128,13 +154,10 @@ class ViewController: UIViewController {
         
         eveningSquare.backgroundColor = UIColor(red: 177/255, green: 105/255, blue: 90/255, alpha: 1);
         eveningSquare.frame = CGRect(x: self.view.bounds.origin.x, y: self.view.bounds.origin.y + self.view.bounds.height/6*4, width: self.view.bounds.width, height: self.view.bounds.height/6);
+        eveningIcon.frame = CGRect(x: eveningSquare.bounds.width * 1/16, y: eveningSquare.bounds.origin.y + eveningSquare.bounds.height * 1/30, width: eveningSquare.bounds.width * 1.5/5, height: eveningSquare.bounds.height);
         self.view.addSubview(eveningSquare);
         
-        //NIGHT
         
-        nightSquare.backgroundColor = UIColor(red: 100/255, green: 71/255, blue: 73/255, alpha: 1);
-        nightSquare.frame = CGRect(x: self.view.bounds.origin.x, y: self.view.bounds.origin.y + self.view.bounds.height/6*5, width: self.view.bounds.width, height: self.view.bounds.height/6);
-        self.view.addSubview(nightSquare);
 
         tapMorning.addTarget(self, action: "tappedMorningView");
         morningSquare.addGestureRecognizer(tapMorning);
@@ -305,68 +328,75 @@ class ViewController: UIViewController {
             
         }
     }
-    /*
+    
     func getCurrentWeatherData() -> Void {
         
         let baseURL = NSURL(string: "https://api.forecast.io/forecast/\(apiKey)/");
-        
-        let forecastURL = NSURL(string: "-22.915493,-43.229674", relativeToURL: baseURL);
-        
         let sharedSession = NSURLSession.sharedSession();
+        var forecastURL: NSURL;
         
-        let downloadTask: NSURLSessionDownloadTask = sharedSession.downloadTaskWithURL(forecastURL, completionHandler: { (location: NSURL!, response: NSURLResponse!, error: NSError!) -> Void in
+        for index in 1...4 {
             
-            if (error == nil){
-                let dataObject = NSData(contentsOfURL: location);
-                let weatherDictionary: NSDictionary = NSJSONSerialization.JSONObjectWithData(dataObject, options: nil, error: nil) as NSDictionary;
+            switch index {
                 
-                let currentWeather = current(weatherDictionary: weatherDictionary);
+            case 1:
+                forecastURL = NSURL(string: "-22.915493,-43.229674,2015-04-\(day)T07:00:00", relativeToURL: baseURL);
+            case 2:
+                forecastURL = NSURL(string: "-22.915493,-43.229674,2015-04-\(day)T13:00:00", relativeToURL: baseURL);
+            case 3:
+                forecastURL = NSURL(string: "-22.915493,-43.229674,2015-04-\(day)T19:00:00", relativeToURL: baseURL);
+            case 4:
+                forecastURL = NSURL(string: "-22.915493,-43.229674,2015-04-\(day)T01:00:00", relativeToURL: baseURL);
                 
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    self.temperatureLabel.text = "\(currentWeather.temperature)";
-                    self.iconView.image = currentWeather.icon!;
-                    self.currentTimeLabel.text = "At \(currentWeather.currentTime!) it is";
-                    self.humidityLabel.text = "\(currentWeather.humidity)"
-                    self.precipitationLabel.text = "\(currentWeather.precipProbability)"
-                    self.summaryLabel.text = "\(currentWeather.summary)"
-                    
-                    self.refreshActivityIndicator.stopAnimating();
-                    self.refreshActivityIndicator.hidden = true;
-                    self.refreshButton.hidden = false;
-                    
-                })
-                
-            } else {
-                
-                let networkIssueController = UIAlertController(title: "Error", message: "Unable to load data. Connectivity error!", preferredStyle: .Alert);
-                
-                let okButton = UIAlertAction(title: "Ok", style: .Default, handler: nil)
-                networkIssueController.addAction(okButton);
-                
-                let cancelButton = UIAlertAction(title: "Cancel", style: .Default, handler: nil)
-                networkIssueController.addAction(cancelButton);
-                
-                self.presentViewController(networkIssueController, animated: true, completion: nil);
-                
-                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    self.refreshActivityIndicator.stopAnimating();
-                    self.refreshActivityIndicator.hidden = true;
-                    self.refreshButton.hidden = false;
-                })
-                
-            }
+            default: forecastURL = NSURL(string: "-22.915493,-43.229674,2015-04-\(day)T07:00:00", relativeToURL: baseURL);
+            };
             
-        })
-        downloadTask.resume();
+            let downloadTask: NSURLSessionDownloadTask = sharedSession.downloadTaskWithURL(forecastURL, completionHandler: { (location: NSURL!, response: NSURLResponse!, error: NSError!) -> Void in
+                
+                if (error == nil){
+                    let dataObject = NSData(contentsOfURL: location);
+                    let weatherDictionary: NSDictionary = NSJSONSerialization.JSONObjectWithData(dataObject, options: nil, error: nil) as NSDictionary;
+                    let currentWeather = current(weatherDictionary: weatherDictionary);
+                    
+                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        
+                        let celsius = (currentWeather.temperature - 32) * 5/9 as Int;
+                        println("\(index) - \(celsius)");
+                        println("\(index) - \(currentWeather.humidity)");
+                        println("\(index) - \(currentWeather.precipProbability)");
+                        println("\(index) - \(currentWeather.summary)");
+                        
+                        /*
+                        self.labelMorningTemp.text = String(celsius);
+                        self.labelMorningHumVal.text = "\(currentWeather.humidity)";
+                        self.labelMorningSumm.text = "\(currentWeather.summary)";
+                        self.labelMorningSumm.sizeToFit();
+                        self.labelMorningIcon.text = currentWeather.icon;
+                        */
+                        
+                        self.updateWeatherInfo(currentWeather,timeWeather: index);
+                    })
+                    
+                } /*else {
+                    
+                    let networkIssueController = UIAlertController(title: "Error", message: "Unable to load data. Connectivity error!", preferredStyle: .Alert);
+                    
+                    let okButton = UIAlertAction(title: "Ok", style: .Default, handler: nil)
+                    networkIssueController.addAction(okButton);
+                    
+                    let cancelButton = UIAlertAction(title: "Cancel", style: .Default, handler: nil)
+                    networkIssueController.addAction(cancelButton);
+                    
+                    self.presentViewController(networkIssueController, animated: true, completion: nil);
+                  */
+                
+                })
+            downloadTask.resume();
+        }
         
     }
-    */
-    func setStartView() {
-        
-        let date = NSDate();
-        let calendar = NSCalendar.currentCalendar();
-        let components = calendar.components(.CalendarUnitHour | .CalendarUnitMinute, fromDate: date);
-        let hour = components.hour;
+    
+    func setStartView(hour: Int) {
         
         switch hour {
             
@@ -395,95 +425,282 @@ class ViewController: UIViewController {
         labelMorning.textAlignment = NSTextAlignment.Left;
         morningSquare.addSubview(labelMorning);
         
-        labelMorningTemp.text = "-1º";
-        labelMorningTemp.textColor = UIColor.whiteColor();
-        labelMorningTemp.font = UIFont(name: "Lato-Regular", size: tempFontSize);
-        labelMorningTemp.sizeToFit();
-        labelMorningTemp.center = CGPointMake(morningSquare.bounds.width * labelMarginX, morningSquare.frame.height*8/12);
-        labelMorningTemp.textAlignment = NSTextAlignment.Left;
-        morningSquare.addSubview(labelMorningTemp);
-        
-        labelMorningSumm.text = "Sunny";
-        labelMorningSumm.textColor = UIColor.whiteColor();
-        labelMorningSumm.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.5);
-        labelMorningSumm.sizeToFit();
-        labelMorningSumm.center = CGPointMake(morningSquare.bounds.width * labelMarginX, morningSquare.frame.height*15/12);
-        labelMorningSumm.textAlignment = NSTextAlignment.Left;
-        morningSquare.addSubview(labelMorningSumm);
-        
-        labelMorningHum.text = "Humidity: " + "\(morningHumVal)";
+        labelMorningHum.text = "Humidity:";
         labelMorningHum.textColor = UIColor.whiteColor();
         labelMorningHum.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.3);
         labelMorningHum.sizeToFit();
-        labelMorningHum.center = CGPointMake(morningSquare.bounds.width * labelMarginX * 1.06, morningSquare.frame.height*21/12);
+        labelMorningHum.center = CGPointMake(morningSquare.bounds.width * labelMarginX, morningSquare.frame.height*21/12);
         labelMorningHum.textAlignment = NSTextAlignment.Left;
         morningSquare.addSubview(labelMorningHum);
         
         //Day labels
         labelDay.text = "DAY";
-        labelDay.textColor = UIColor.whiteColor();
+        labelDay.textColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.4);
         labelDay.font = UIFont(name: "Lato-Regular", size: 20);
         labelDay.sizeToFit();
         labelDay.center = CGPointMake(afternoonSquare.bounds.width * labelMarginX, afternoonSquare.frame.height*3/12);
         labelDay.textAlignment = NSTextAlignment.Left;
         afternoonSquare.addSubview(labelDay);
         
-        labelDayTemp.text = "+3º";
-        labelDayTemp.textColor = UIColor.whiteColor();
-        labelDayTemp.font = UIFont(name: "Lato-Regular", size: tempFontSize);
-        labelDayTemp.sizeToFit();
+        labelDayHum.text = "Humidity:";
+        labelDayHum.textColor = UIColor.whiteColor();
+        labelDayHum.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.3);
+        labelDayHum.sizeToFit();
+        labelDayHum.center = CGPointMake(afternoonSquare.bounds.width * labelMarginX, afternoonSquare.frame.height*21/12);
+        labelDayHum.textAlignment = NSTextAlignment.Left;
+        afternoonSquare.addSubview(labelDayHum);
+        
         labelDayTemp.center = CGPointMake(afternoonSquare.bounds.width * labelMarginX, afternoonSquare.frame.height*8/12);
-        labelDayTemp.textAlignment = NSTextAlignment.Left;
-        afternoonSquare.addSubview(labelDayTemp);
         
         //Evening labels
         labelEvening.text = "EVENING";
-        labelEvening.textColor = UIColor.whiteColor();
+        labelEvening.textColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.4);
         labelEvening.font = UIFont(name: "Lato-Regular", size: 20);
         labelEvening.sizeToFit();
         labelEvening.center = CGPointMake(eveningSquare.bounds.width * labelMarginX, eveningSquare.frame.height*3/12);
         labelEvening.textAlignment = NSTextAlignment.Left;
         eveningSquare.addSubview(labelEvening);
         
-        labelEveningTemp.text = "0º";
-        labelEveningTemp.textColor = UIColor.whiteColor();
-        labelEveningTemp.font = UIFont(name: "Lato-Regular", size: tempFontSize);
-        labelEveningTemp.sizeToFit();
-        labelEveningTemp.center = CGPointMake(eveningSquare.bounds.width * labelMarginX, eveningSquare.frame.height*8/12);
-        labelEveningTemp.textAlignment = NSTextAlignment.Left;
-        eveningSquare.addSubview(labelEveningTemp);
+        labelEveningHum.text = "Humidity";
+        labelEveningHum.textColor = UIColor.whiteColor();
+        labelEveningHum.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.3);
+        labelEveningHum.sizeToFit();
+        labelEveningHum.center = CGPointMake(eveningSquare.bounds.width * labelMarginX, eveningSquare.frame.height*21/12);
+        labelEveningHum.textAlignment = NSTextAlignment.Left;
+        eveningSquare.addSubview(labelEveningHum);
         
         //Night labels
         labelNight.text = "NIGHT";
-        labelNight.textColor = UIColor.whiteColor();
+        labelNight.textColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.4);
         labelNight.font = UIFont(name: "Lato-Regular", size: 20);
         labelNight.sizeToFit();
         labelNight.center = CGPointMake(nightSquare.bounds.width * labelMarginX, nightSquare.frame.height*3/12);
         labelNight.textAlignment = NSTextAlignment.Left;
         nightSquare.addSubview(labelNight);
         
-        labelNightTemp.text = "-2º";
-        labelNightTemp.textColor = UIColor.whiteColor();
-        labelNightTemp.font = UIFont(name: "Lato-Regular", size: tempFontSize);
-        labelNightTemp.sizeToFit();
-        labelNightTemp.center = CGPointMake(nightSquare.bounds.width * labelMarginX, nightSquare.frame.height*8/12);
-        labelNightTemp.textAlignment = NSTextAlignment.Left;
-        nightSquare.addSubview(labelNightTemp);
+        labelNightHum.text = "Humidity";
+        labelNightHum.textColor = UIColor.whiteColor();
+        labelNightHum.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.3);
+        labelNightHum.sizeToFit();
+        labelNightHum.center = CGPointMake(nightSquare.bounds.width * labelMarginX, nightSquare.frame.height*21/12);
+        labelNightHum.textAlignment = NSTextAlignment.Left;
+        nightSquare.addSubview(labelNightHum);
+        
+    }
+    
+    func updateWeatherInfo(currentWeather: current, timeWeather: Int){
+        
+        let celsius = (currentWeather.temperature - 32) * 5/9 as Int;
+        
+        switch timeWeather {
+        
+            case 1:
+        
+                labelMorningTemp.text = String(celsius) + "º";
+                labelMorningTemp.textColor = UIColor.whiteColor();
+                labelMorningTemp.font = UIFont(name: "Lato-Regular", size: tempFontSize);
+                labelMorningTemp.sizeToFit();
+                labelMorningTemp.center = CGPointMake(morningSquare.bounds.width * labelMarginX, morningSquare.frame.height*8/12);
+                labelMorningTemp.textAlignment = NSTextAlignment.Left;
+                morningSquare.addSubview(labelMorningTemp);
+                
+                labelMorningSumm.text = "\(currentWeather.summary)";
+                labelMorningSumm.textColor = UIColor.whiteColor();
+                labelMorningSumm.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.5);
+                labelMorningSumm.sizeToFit();
+                labelMorningSumm.center = CGPointMake(morningSquare.bounds.width * labelMarginX, morningSquare.frame.height*15/12);
+                labelMorningSumm.textAlignment = NSTextAlignment.Left;
+                morningSquare.addSubview(labelMorningSumm);
+                
+                labelMorningHumVal.text = "\(currentWeather.humidity)";
+                labelMorningHumVal.textColor = UIColor.whiteColor();
+                labelMorningHumVal.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.3);
+                labelMorningHumVal.sizeToFit();
+                labelMorningHumVal.center = CGPointMake(morningSquare.bounds.width * labelMarginX, morningSquare.frame.height*24/12);
+                labelMorningHumVal.textAlignment = NSTextAlignment.Left;
+                morningSquare.addSubview(labelMorningHumVal);
+                
+                labelMorningIcon.text = currentWeather.icon;
+                labelMorningIcon.textColor = UIColor(red: 216/255, green: 152/255, blue: 100/255, alpha: 1);
+                labelMorningIcon.font = UIFont(name: "WeatherIcons-Regular", size: iconWeatherSize);
+                labelMorningIcon.adjustsFontSizeToFitWidth = true;
+                labelMorningIcon.sizeToFit();
+                labelMorningIcon.center = CGPointMake(labelDayIcon.bounds.width/2 + iconMarginLeft, labelDayIcon.bounds.height/2 + iconMarginTop);
+                labelMorningIcon.textAlignment = NSTextAlignment.Center;
+                morningIcon.addSubview(labelMorningIcon);
+            
+            case 2:
+                
+                labelDayTemp.text = String(celsius) + "º";
+                labelDayTemp.textColor = UIColor.whiteColor();
+                labelDayTemp.font = UIFont(name: "Lato-Regular", size: tempFontSize);
+                labelDayTemp.sizeToFit();
+                labelDayTemp.center = CGPointMake(afternoonSquare.bounds.width * labelMarginX, afternoonSquare.frame.height*8/12);
+                labelDayTemp.textAlignment = NSTextAlignment.Left;
+                afternoonSquare.addSubview(labelDayTemp);
+            
+                labelDaySumm.text = "\(currentWeather.summary)";
+                labelDaySumm.textColor = UIColor.whiteColor();
+                labelDaySumm.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.5);
+                labelDaySumm.sizeToFit();
+                labelDaySumm.center = CGPointMake(afternoonSquare.bounds.width * labelMarginX, afternoonSquare.frame.height*15/12);
+                labelDaySumm.textAlignment = NSTextAlignment.Left;
+                afternoonSquare.addSubview(labelDaySumm);
+                
+                labelDayHumVal.text = "\(currentWeather.humidity)";
+                labelDayHumVal.textColor = UIColor.whiteColor();
+                labelDayHumVal.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.3);
+                labelDayHumVal.sizeToFit();
+                labelDayHumVal.center = CGPointMake(afternoonSquare.bounds.width * labelMarginX, afternoonSquare.frame.height*24/12);
+                labelDayHumVal.textAlignment = NSTextAlignment.Left;
+                afternoonSquare.addSubview(labelDayHumVal);
+                
+                labelDayIcon.text = currentWeather.icon;
+                labelDayIcon.textColor = UIColor(red: 100/255, green: 71/255, blue: 73/255, alpha: 1);
+                labelDayIcon.font = UIFont(name: "WeatherIcons-Regular", size: iconWeatherSize);
+                labelDayIcon.adjustsFontSizeToFitWidth = true;
+                labelDayIcon.sizeToFit();
+                labelDayIcon.center = CGPointMake(labelDayIcon.bounds.width/2 + iconMarginLeft, labelDayIcon.bounds.height/2 + iconMarginTop);
+                labelDayIcon.textAlignment = NSTextAlignment.Center;
+                dayIcon.addSubview(labelDayIcon);
+            
+            case 3:
+            
+                labelEveningTemp.text = String(celsius) + "º";
+                labelEveningTemp.textColor = UIColor.whiteColor();
+                labelEveningTemp.font = UIFont(name: "Lato-Regular", size: tempFontSize);
+                labelEveningTemp.sizeToFit();
+                labelEveningTemp.center = CGPointMake(eveningSquare.bounds.width * labelMarginX, eveningSquare.frame.height*8/12);
+                labelEveningTemp.textAlignment = NSTextAlignment.Left;
+                eveningSquare.addSubview(labelEveningTemp);
+                
+                labelEveningSumm.text = "\(currentWeather.summary)";
+                labelEveningSumm.textColor = UIColor.whiteColor();
+                labelEveningSumm.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.5);
+                labelEveningSumm.sizeToFit();
+                labelEveningSumm.center = CGPointMake(eveningSquare.bounds.width * labelMarginX, eveningSquare.frame.height*15/12);
+                labelEveningSumm.textAlignment = NSTextAlignment.Left;
+                eveningSquare.addSubview(labelEveningSumm);
+                
+                labelEveningHumVal.text = "\(currentWeather.humidity)";
+                labelEveningHumVal.textColor = UIColor.whiteColor();
+                labelEveningHumVal.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.3);
+                labelEveningHumVal.sizeToFit();
+                labelEveningHumVal.center = CGPointMake(eveningSquare.bounds.width * labelMarginX, eveningSquare.frame.height*24/12);
+                labelEveningHumVal.textAlignment = NSTextAlignment.Left;
+                eveningSquare.addSubview(labelEveningHumVal);
+            
+                labelEveningIcon.text = currentWeather.icon;
+                labelEveningIcon.textColor = UIColor(red: 227/255, green: 187/255, blue: 136/255, alpha: 1);
+                labelEveningIcon.font = UIFont(name: "WeatherIcons-Regular", size: iconWeatherSize);
+                labelEveningIcon.adjustsFontSizeToFitWidth = true;
+                labelEveningIcon.sizeToFit();
+                labelEveningIcon.center = CGPointMake(labelEveningIcon.bounds.width/2 + iconMarginLeft, labelEveningIcon.bounds.height/2 + iconMarginTop);
+                labelEveningIcon.textAlignment = NSTextAlignment.Center;
+                eveningIcon.addSubview(labelEveningIcon);
+            
+            case 4:
+            
+                labelNightTemp.text = String(celsius) + "º";
+                labelNightTemp.textColor = UIColor.whiteColor();
+                labelNightTemp.font = UIFont(name: "Lato-Regular", size: tempFontSize);
+                labelNightTemp.sizeToFit();
+                labelNightTemp.center = CGPointMake(nightSquare.bounds.width * labelMarginX, nightSquare.frame.height*8/12);
+                labelNightTemp.textAlignment = NSTextAlignment.Left;
+                nightSquare.addSubview(labelNightTemp);
+            
+                labelNightSumm.text = "\(currentWeather.summary)";
+                labelNightSumm.textColor = UIColor.whiteColor();
+                labelNightSumm.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.5);
+                labelNightSumm.sizeToFit();
+                labelNightSumm.center = CGPointMake(nightSquare.bounds.width * labelMarginX, nightSquare.frame.height*15/12);
+                labelNightSumm.textAlignment = NSTextAlignment.Left;
+                nightSquare.addSubview(labelNightSumm);
+                
+                labelNightHumVal.text = "\(currentWeather.humidity)";
+                labelNightHumVal.textColor = UIColor.whiteColor();
+                labelNightHumVal.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.3);
+                labelNightHumVal.sizeToFit();
+                labelNightHumVal.center = CGPointMake(nightSquare.bounds.width * labelMarginX, nightSquare.frame.height*24/12);
+                labelNightHumVal.textAlignment = NSTextAlignment.Left;
+                nightSquare.addSubview(labelNightHumVal);
+            
+                labelNightIcon.text = currentWeather.icon;
+                labelNightIcon.textColor = UIColor(red: 216/255, green: 152/255, blue: 136/255, alpha: 1);
+                labelNightIcon.font = UIFont(name: "WeatherIcons-Regular", size: iconWeatherSize);
+                labelNightIcon.adjustsFontSizeToFitWidth = true;
+                labelNightIcon.sizeToFit();
+                labelNightIcon.center = CGPointMake(labelNightIcon.bounds.width/2 + iconMarginLeft, labelNightIcon.bounds.height/2 + iconMarginTop);
+                labelNightIcon.textAlignment = NSTextAlignment.Center;
+                nightIcon.addSubview(labelNightIcon);
+            
+            default:
+            
+                labelMorningTemp.text = "-1º";
+                labelMorningTemp.textColor = UIColor.whiteColor();
+                labelMorningTemp.font = UIFont(name: "Lato-Regular", size: tempFontSize);
+                labelMorningTemp.sizeToFit();
+                labelMorningTemp.center = CGPointMake(morningSquare.bounds.width * labelMarginX, morningSquare.frame.height*8/12);
+                labelMorningTemp.textAlignment = NSTextAlignment.Left;
+                morningSquare.addSubview(labelMorningTemp);
+                
+                labelMorningSumm.text = "Sunny";
+                labelMorningSumm.textColor = UIColor.whiteColor();
+                labelMorningSumm.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.5);
+                labelMorningSumm.sizeToFit();
+                labelMorningSumm.center = CGPointMake(morningSquare.bounds.width * labelMarginX, morningSquare.frame.height*15/12);
+                labelMorningSumm.textAlignment = NSTextAlignment.Left;
+                morningSquare.addSubview(labelMorningSumm);
+                
+                labelMorningHumVal.text = "\(morningHumVal)";
+                labelMorningHumVal.textColor = UIColor.whiteColor();
+                labelMorningHumVal.font = UIFont(name: "Lato-Regular", size: tempFontSize * 0.3);
+                labelMorningHumVal.sizeToFit();
+                labelMorningHumVal.center = CGPointMake(morningSquare.bounds.width * labelMarginX * 1.06, morningSquare.frame.height*24/12);
+                labelMorningHumVal.textAlignment = NSTextAlignment.Left;
+                morningSquare.addSubview(labelMorningHumVal);
+            
+                labelMorningIcon.text = "\u{f00d}";
+                labelMorningIcon.textColor = UIColor(red: 216/255, green: 152/255, blue: 100/255, alpha: 1);
+                labelMorningIcon.font = UIFont(name: "WeatherIcons-Regular", size: iconWeatherSize);
+                labelMorningIcon.adjustsFontSizeToFitWidth = true;
+                labelMorningIcon.sizeToFit();
+                labelMorningIcon.center = CGPointMake(labelMorningIcon.bounds.width/2 + iconMarginLeft, labelMorningIcon.bounds.height/2 + iconMarginTop);
+                labelMorningIcon.textAlignment = NSTextAlignment.Left;
+                morningIcon.addSubview(labelMorningIcon);
+            
+                labelDayTemp.text = "+3º";
+                labelDayTemp.textColor = UIColor.whiteColor();
+                labelDayTemp.font = UIFont(name: "Lato-Regular", size: tempFontSize);
+                labelDayTemp.sizeToFit();
+                labelDayTemp.center = CGPointMake(afternoonSquare.bounds.width * labelMarginX, afternoonSquare.frame.height*8/12);
+                labelDayTemp.textAlignment = NSTextAlignment.Left;
+                afternoonSquare.addSubview(labelDayTemp);
+                
+                labelEveningTemp.text = "0º";
+                labelEveningTemp.textColor = UIColor.whiteColor();
+                labelEveningTemp.font = UIFont(name: "Lato-Regular", size: tempFontSize);
+                labelEveningTemp.sizeToFit();
+                labelEveningTemp.center = CGPointMake(eveningSquare.bounds.width * labelMarginX, eveningSquare.frame.height*8/12);
+                labelEveningTemp.textAlignment = NSTextAlignment.Left;
+                eveningSquare.addSubview(labelEveningTemp);
+                
+                labelNightTemp.text = "-2º";
+                labelNightTemp.textColor = UIColor.whiteColor();
+                labelNightTemp.font = UIFont(name: "Lato-Regular", size: tempFontSize);
+                labelNightTemp.sizeToFit();
+                labelNightTemp.center = CGPointMake(nightSquare.bounds.width * labelMarginX, nightSquare.frame.height*8/12);
+                labelNightTemp.textAlignment = NSTextAlignment.Left;
+                nightSquare.addSubview(labelNightTemp);
+        }
+        
+        
         
     }
     
     func setWeatherIcon() {
         
         //Icons Animated
-        
-        labelMorningIcon.text = "\u{f00d}";
-        labelMorningIcon.textColor = UIColor(red: 216/255, green: 152/255, blue: 100/255, alpha: 1);
-        labelMorningIcon.font = UIFont(name: "WeatherIcons-Regular", size: iconWeatherSize);
-        labelMorningIcon.adjustsFontSizeToFitWidth = true;
-        labelMorningIcon.sizeToFit();
-        labelMorningIcon.center = CGPointMake(labelMorningIcon.bounds.width/2 + iconMarginLeft, labelMorningIcon.bounds.height/2 + iconMarginTop);
-        labelMorningIcon.textAlignment = NSTextAlignment.Left;
-        morningIcon.addSubview(labelMorningIcon);
         
         labelDayIcon.text = "\u{f002}";
         labelDayIcon.textColor = UIColor(red: 100/255, green: 71/255, blue: 73/255, alpha: 1);
@@ -515,14 +732,9 @@ class ViewController: UIViewController {
     }
     
     func showMorningIcon(){
-        
         morningSquare.addSubview(morningIcon);
         UIView.animateWithDuration(0.75, animations: {
             self.labelMorningIcon.center = CGPoint(x: self.labelMorningIcon.bounds.width/2 + UIScreen.mainScreen().bounds.size.width * 0.05, y: self.labelMorningIcon.bounds.height/2 + UIScreen.mainScreen().bounds.size.height * 0.05)});
-        
-        UIView.animateWithDuration(1, delay: 0.0, options: .CurveLinear | .Repeat, animations: {
-            self.labelMorningIcon.transform = CGAffineTransformMakeRotation(CGFloat(M_PI));
-            }, completion: {finished in self.labelMorningIcon.transform = CGAffineTransformMakeRotation(CGFloat(2.0 * M_PI))});
         
         UIView.animateWithDuration(0.75, animations: {
             self.labelDayIcon.center = CGPoint(x: self.labelDayIcon.bounds.width/2 + UIScreen.mainScreen().bounds.size.width * 0.05, y: self.labelDayIcon.bounds.height/2 + UIScreen.mainScreen().bounds.size.height * 0.25)});
@@ -533,8 +745,15 @@ class ViewController: UIViewController {
         UIView.animateWithDuration(0.75, animations: {
             self.labelNightIcon.center = CGPoint(x: self.labelNightIcon.bounds.width/2 + UIScreen.mainScreen().bounds.size.width * 0.05, y: self.labelNightIcon.bounds.height/2 + UIScreen.mainScreen().bounds.size.height * 0.25)});
         
+        /* Rotation animation disable for now */
+        /*
+        UIView.animateWithDuration(1, delay: 0.0, options: .CurveLinear | .Repeat, animations: {
+        self.labelMorningIcon.transform = CGAffineTransformMakeRotation(CGFloat(M_PI));
+        }, completion: {finished in self.labelMorningIcon.transform = CGAffineTransformMakeRotation(CGFloat(2.0 * M_PI))});
+        */
+        
     }
-    
+
     func showDayIcon(){
         
         afternoonSquare.addSubview(dayIcon);

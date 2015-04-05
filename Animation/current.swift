@@ -16,7 +16,7 @@ struct current {
     var humidity: Double;
     var precipProbability: Double;
     var summary: String;
-    var icon: UIImage?;    
+    var icon: String?;
     
     init(weatherDictionary: NSDictionary){
         
@@ -46,18 +46,19 @@ struct current {
         
     }
     
-    func weatherIconFromString(stringIcon: String) -> UIImage {
+    func weatherIconFromString(stringIcon: String) -> String {
         
         var imageName: String;
+        println("Icone: \(stringIcon)");
         
         switch stringIcon {
             
         case "clear-day":
-            imageName = "clear-day"
+            imageName = "\u{f00d}"
         case "clear-night":
             imageName = "clear-night"
         case "rain":
-            imageName = "rain"
+            imageName = "\u{f017}"
         case "snow":
             imageName = "snow"
         case "sleet":
@@ -67,16 +68,17 @@ struct current {
         case "fog":
             imageName = "fog"
         case "cloudy":
-            imageName = "cloudy"
-        case "partly-cloud-day":
-            imageName = "partly-cloud-day"
+            imageName = "\u{f002}"
+        case "partly-cloudy-day":
+            imageName = "\u{f002}"
+        case "partly-cloudy-night":
+            imageName = "\u{f013}"
         default:
             imageName = "default"
             
         }
         
-        var iconImage = UIImage(named: imageName);
-        return iconImage;
+        return imageName;
         
     }
     
