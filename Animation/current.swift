@@ -18,53 +18,64 @@ struct current {
     var summary: String;
     var icon: String?;
     
+    init(){
+        
+        temperature = 0
+        humidity = 0
+        precipProbability = 0.00
+        summary = ""
+        currentTime = ""
+        icon = ""
+        
+    }
+    
     init(weatherDictionary: NSDictionary){
         
-        let currentWeather = weatherDictionary["currently"] as NSDictionary;
-        let currentTimeIntValue = currentWeather["time"] as Int;
+        let currentWeather = weatherDictionary["currently"] as! NSDictionary;
+        let currentTimeIntValue = currentWeather["time"] as! Int;
         
-        temperature = currentWeather["temperature"] as Int;
-        humidity = currentWeather["humidity"] as Double;
-        precipProbability = currentWeather["precipProbability"] as Double;
-        summary = currentWeather["summary"] as String;
+        temperature = currentWeather["temperature"] as! Int;
+        humidity = currentWeather["humidity"] as! Double;
+        precipProbability = currentWeather["dewPoint"] as! Double;
+        summary = currentWeather["summary"] as! String;
         
         currentTime = dataStringFromUnixTime(currentTimeIntValue);
-        let iconString = currentWeather["icon"] as String;
+        let iconString = currentWeather["icon"] as! String;
         icon = weatherIconFromString(iconString);
         
     }
     
-    func dataStringFromUnixTime(unixTime: Int) -> String {
+    func dataStringFromUnixTime(_ unixTime: Int) -> String {
         
-        let timeInSeconds = NSTimeInterval(unixTime);
-        let weatherDate = NSDate(timeIntervalSince1970: timeInSeconds);
+        let timeInSeconds = TimeInterval(unixTime);
+        let weatherDate = Date(timeIntervalSince1970: timeInSeconds);
         
-        let dateFormatter = NSDateFormatter();
-        dateFormatter.timeStyle = .ShortStyle;
+        let dateFormatter = DateFormatter();
+        dateFormatter.timeStyle = .short;
         
-        return dateFormatter.stringFromDate(weatherDate);
+        return dateFormatter.string(from: weatherDate);
         
     }
     
-    func weatherIconFromString(stringIcon: String) -> String {
+    func weatherIconFromString(_ stringIcon: String) -> String {
         
         var imageName: String;
-        println("Icone: \(stringIcon)");
+        print("Icone: \(stringIcon)");
         
         switch stringIcon {
             
         case "clear-day":
             imageName = "\u{f00d}"
         case "clear-night":
-            imageName = "clear-night"
+            imageName = "\u{f02e}"
         case "rain":
             imageName = "\u{f017}"
         case "snow":
-            imageName = "snow"
+            imageName = "\u{f01b}"
         case "sleet":
             imageName = "sleet"
         case "wind":
-            imageName = "wind"
+            imageName = "\u{f021}"
         case "fog":
             imageName = "fog"
         case "cloudy":

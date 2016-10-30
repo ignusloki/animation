@@ -30,6 +30,8 @@
 	<array>
 		<string>armv7</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Your location is used to send you timely weather alerts in your immediate area.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Lato-Regular.ttf</string>

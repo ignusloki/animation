@@ -7,14 +7,14 @@
 	<key>IDESourceControlProjectIdentifier</key>
 	<string>8D500D8F-2327-4570-B90E-12F726142775</string>
 	<key>IDESourceControlProjectName</key>
-	<string>Animation</string>
+	<string>project</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
 		<key>A02AF767B267C73CD616410C84A831A5FD986B6C</key>
 		<string>https://github.com/ignusloki/animation.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>Animation.xcodeproj</string>
+	<string>Animation.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>A02AF767B267C73CD616410C84A831A5FD986B6C</key>
